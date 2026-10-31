@@ -57,3 +57,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy-to-ec2:
+    name: Deploy to EC2
+    needs: build-test-and-publish
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy application
+        run: |
+          cd "$HOME/distributed-cache"
+          sudo docker compose -f docker-compose.yml pull
+          sudo docker compose -f docker-compose.yml up -d --no-build
+
+      - name: Wait for startup
+        run: sleep 10
+
+      - name: Verify deployment health
+        run: curl --fail http://localhost:3000/health
