@@ -15,8 +15,8 @@ COPY package.json package-lock.json ./
 
 # Install ALL deps (dev + prod) for the build step.
 # --frozen-lockfile keeps the build hermetic.
-RUN npm ci --frozen-lockfile
-
+# RUN npm ci --frozen-lockfile
+RUN npm ci
 # Copy source and compiler config.
 COPY tsconfig.json ./
 COPY src/ ./src/
@@ -42,7 +42,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install production dependencies only.
-RUN npm ci --frozen-lockfile --omit=dev
+RUN npm ci --omit=dev
 
 # Copy compiled JavaScript from the builder stage.
 COPY --from=builder /app/dist ./dist
