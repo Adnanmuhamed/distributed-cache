@@ -1,0 +1,24 @@
+# docker-compose.override.yml
+#
+# Development convenience override — binds cache-node ports to localhost so
+# you can curl individual nodes directly for debugging.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
+#
+# WARNING: Do not use in production. Node ports expose raw cache data with no auth.
+
+name: distributed-cache
+
+services:
+  cache-node-1:
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  cache-node-2:
+    ports:
+      - "127.0.0.1:3002:3002"
+
+  cache-node-3:
+    ports:
+      - "127.0.0.1:3003:3003"

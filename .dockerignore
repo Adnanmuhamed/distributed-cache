@@ -1,0 +1,38 @@
+# .dockerignore
+#
+# Files and directories excluded from the Docker build context.
+# A tight exclusion list keeps the image build fast and avoids copying
+# secrets, test artefacts, or host-specific files into the image.
+
+# Version control
+.git
+.gitignore
+
+# Node artefacts (installed fresh inside the container by npm ci)
+node_modules
+npm-debug.log*
+
+# Compiled output (rebuilt inside the container by tsc)
+dist/
+
+# Test infrastructure (not needed in production image)
+src/__tests__/
+jest.config.*
+*.test.ts
+*.spec.ts
+coverage/
+
+# Editor and OS noise
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Docker files themselves (no self-reference needed)
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.override.yml
+
+# Documentation (optional — remove if you want docs in the image)
+README.md

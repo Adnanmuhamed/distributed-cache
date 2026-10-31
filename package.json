@@ -6,15 +6,37 @@
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "start:node": "node dist/node-server/nodeServer.js",
+    "start:gateway": "node dist/gateway/gateway.js",
+    "test": "jest --forceExit"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json"
+      }
+    }
   },
   "dependencies": {
     "express": "^4.19.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.12.12",
+    "@types/supertest": "^7.2.1",
+    "autocannon": "^8.0.0",
+    "jest": "^29.7.0",
+    "jest-util": "^29.7.0",
     "nodemon": "^3.1.0",
+    "supertest": "^7.3.1",
+    "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
