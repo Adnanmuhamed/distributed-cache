@@ -1,40 +1,11 @@
-# docker-compose.yml
-#
+
 # Distributed Cache — complete stack deployment
-#
-# Services
-# ────────
-#   cache-node-1   In-memory cache shard — internal only
-#   cache-node-2   In-memory cache shard — internal only
-#   cache-node-3   In-memory cache shard — internal only
-#   gateway        API gateway — sole publicly exposed service (:3000)
-#
-# Architecture
-# ────────────
-#   Client → gateway:3000 → (consistent hash) → cache-node-{1,2,3}
-#
-#   The gateway resolves cache nodes by Docker Compose DNS names:
-#     cache-node-1:3001, cache-node-2:3002, cache-node-3:3003
-#   Node ports are NOT bound to the host; they are reachable only from
-#   within the "cache-net" bridge network.
-#
-# Quick-start
-# ───────────
-#   docker compose up --build -d
-#   curl http://localhost:3000/health
-#
-# Expose node ports for development (use docker-compose.override.yml)
-# ──────────────────────────────────────────────────────────────────
-#   docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
 
 name: distributed-cache
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Re-usable YAML anchors
-# ─────────────────────────────────────────────────────────────────────────────
-
 # All four services share the same Docker image.
 x-image-defaults: &image-defaults
+  image: ghcr.io/adnanmuhamed/distributed-cache:latest
   build:
     context: .
     dockerfile: Dockerfile
@@ -48,7 +19,7 @@ x-image-defaults: &image-defaults
       max-size: "10m"
       max-file: "3"
 
-# Shared resource limits — conservative defaults that work on most dev machines.
+# Shared resource limits
 x-resource-limits: &resource-limits
   deploy:
     resources:
@@ -59,12 +30,9 @@ x-resource-limits: &resource-limits
         cpus: "0.10"
         memory: 64M
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Services
-# ─────────────────────────────────────────────────────────────────────────────
 services:
 
-  # ── Cache node 1 ─────────────────────────────────────────────────────────────
+  # Cache node 1
   cache-node-1:
     <<: [*image-defaults, *resource-limits]
     container_name: cache-node-1
@@ -73,10 +41,8 @@ services:
     environment:
       NODE_ID: cache-node-1
       PORT: "3001"
-      # Override with: NODE_CAPACITY=5000 docker compose up
       CAPACITY: "${NODE_CAPACITY:-1000}"
       POLICY: "${NODE_POLICY:-LRU}"
-    # expose makes port accessible on the Docker network but NOT on the host.
     expose:
       - "3001"
     healthcheck:
@@ -86,7 +52,7 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── Cache node 2 ─────────────────────────────────────────────────────────────
+  # Cache node 2
   cache-node-2:
     <<: [*image-defaults, *resource-limits]
     container_name: cache-node-2
@@ -106,7 +72,7 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── Cache node 3 ─────────────────────────────────────────────────────────────
+  # Cache node 3
   cache-node-3:
     <<: [*image-defaults, *resource-limits]
     container_name: cache-node-3
@@ -126,7 +92,7 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── API Gateway ───────────────────────────────────────────────────────────────
+  # API Gateway
   gateway:
     <<: [*image-defaults, *resource-limits]
     container_name: cache-gateway
@@ -134,19 +100,14 @@ services:
     command: ["npm", "run", "start:gateway"]
     environment:
       GATEWAY_PORT: "3000"
-      # Override with: VIRTUAL_NODES=200 docker compose up
       VIRTUAL_NODES: "${VIRTUAL_NODES:-100}"
       REQUEST_TIMEOUT_MS: "${REQUEST_TIMEOUT_MS:-5000}"
-      # Docker Compose DNS — resolved automatically within cache-net.
       CACHE_NODE_1_ID: cache-node-1
       CACHE_NODE_1_URL: "http://cache-node-1:3001"
       CACHE_NODE_2_ID: cache-node-2
       CACHE_NODE_2_URL: "http://cache-node-2:3002"
       CACHE_NODE_3_ID: cache-node-3
       CACHE_NODE_3_URL: "http://cache-node-3:3003"
-    # Only the gateway port is published to the host.
-    # GATEWAY_HOST_PORT defaults to 3000; override to avoid clashes:
-    #   GATEWAY_HOST_PORT=8080 docker compose up
     ports:
       - "${GATEWAY_HOST_PORT:-3000}:3000"
     depends_on:
@@ -163,9 +124,6 @@ services:
       retries: 5
       start_period: 20s
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Networks
-# ─────────────────────────────────────────────────────────────────────────────
 networks:
   cache-net:
     driver: bridge
